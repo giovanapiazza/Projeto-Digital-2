@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
 entity processador is
@@ -16,17 +15,11 @@ architecture behaviour of processador is
 
 
     -- FORMATO DA  INSTRUÇAO --
-
     -- 4 BITS - OPCODE
-
     -- 4 BITS - REG 1
-
     -- 4 BITS - REG 2
-    
     -- 4 BITS - REG DEST
-
     -- 8 BITS - ENDEREÇO / IMEDIATO
-
 
 
     type t_mem_p is array (integer range 0 to 255) of std_logic_vector(23 downto 0);
