@@ -100,36 +100,32 @@ architecture pipeline_arch of Pipeline is
 begin
 
     -- ==========================================================
-    -- 0. LOAD PROGRAM (HARDCODED) - VALIDATION LOOP
+    -- 0. LOAD PROGRAM (TESTE DE FORWARDING)
     -- ==========================================================
     process(reset)
     begin
         if reset = '1' then
-             -- Loop to sum numbers, store in memory and read back.
-             -- 0: LDI R1, 0      (Accumulator = 0)
-             mem_p(0) <= "0000" & "0001" & "0000" & "0000" & "00000000";
-             -- 1: LDI R2, 1      (Increment = 1)
-             mem_p(1) <= "0000" & "0010" & "0000" & "0000" & "00000001";
-             -- 2: LDI R3, 5      (Loop Limit = 5)
-             mem_p(2) <= "0000" & "0011" & "0000" & "0000" & "00000101";
-             -- 3: ADDI R4, R0, 100 (Memory Base Address = 100)
-             mem_p(3) <= "1000" & "0100" & "0000" & "0000" & "01100100";
+             -- 0: LDI R1, 15  (Carrega 15 no R1)
+             mem_p(0) <= "0000" & "0001" & "0000" & "0000" & "00001111";
              
-             -- === LOOP START (PC=4) ===
-             -- 4: ADD R1, R1, R2 (R1 = R1 + 1)
-             mem_p(4) <= "0001" & "0001" & "0001" & "0010" & "00000000";
-             -- 5: MUL R5, R1, R2 (MUL Test)
-             mem_p(5) <= "0011" & "0101" & "0001" & "0010" & "00000000";
-             -- 6: SW R1, 100 (Store R1 to memory address 100)
-             mem_p(6) <= "0111" & "0000" & "0001" & "0000" & "01100100";
-             -- 7: LW R6, 100 (Load from memory 100 to R6)
-             mem_p(7) <= "1011" & "0110" & "0000" & "0000" & "01100100";
-             -- 8: BNE R1, R3, -4 (If R1 != 5, jump back to PC 4)
-             mem_p(8) <= "0110" & "0000" & "0001" & "0011" & "11111011";
-             -- 9: JMP 9 (End - Infinite Loop)
-             mem_p(9) <= "0100" & "0000" & "0000" & "0000" & "00001001";
+             -- 1: LDI R2, 10  (Carrega 10 no R2)
+             mem_p(1) <= "0000" & "0010" & "0000" & "0000" & "00001010";
              
-             for i in 10 to 255 loop mem_p(i) <= (others => '0'); end loop;
+             -- 2: SUB R3, R1, R2  (R3 = 15 - 10 = 5)
+             -- O resultado (5) é gerado no estágio EX desta instrução.
+             mem_p(2) <= "0010" & "0011" & "0001" & "0010" & "00000000";
+             
+             -- 3: ADD R4, R3, R1  (R4 = 5 + 15 = 20)
+             -- *** TESTE DE FORWARDING ***
+             -- Esta instrução pede o R3 enquanto a SUB ainda não gravou no WB.
+             -- O hardware deve fazer Forwarding do EX da anterior para o EX desta.
+             mem_p(3) <= "0001" & "0100" & "0011" & "0001" & "00000000";
+             
+             -- 4: JMP 4 (Loop Infinito para encerrar)
+             mem_p(4) <= "0100" & "0000" & "0000" & "0000" & "00000100";
+             
+             -- Limpa o resto da memória
+             for i in 5 to 255 loop mem_p(i) <= (others => '0'); end loop;
         end if;
     end process;
 
@@ -358,4 +354,3 @@ begin
     debug_wb_dado <= wb_final_data;
 
 end pipeline_arch;
-
